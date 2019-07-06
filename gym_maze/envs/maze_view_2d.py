@@ -1,7 +1,8 @@
-import pygame
-import random
-import numpy as np
 import os
+import random
+
+import numpy as np
+import pygame
 
 
 class MazeView2D:
@@ -184,7 +185,7 @@ class MazeView2D:
 
             pygame.draw.line(self.maze_layer, colour, line_head, line_tail)
 
-    def __draw_robot(self, colour=(0, 0, 150), transparency=255):
+    def __draw_robot(self, colour=(0, 0, 250), transparency=255):
 
         x = int(self.__robot[0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
@@ -228,6 +229,10 @@ class MazeView2D:
     @property
     def robot(self):
         return self.__robot
+
+    @robot.setter
+    def robot(self, new_robot):
+        self.__robot = new_robot
 
     @property
     def entrance(self):

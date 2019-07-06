@@ -1,8 +1,8 @@
-import numpy as np
-
 import gym
-from gym import error, spaces, utils
+import numpy as np
+from gym import spaces
 from gym.utils import seeding
+
 from gym_maze.envs.maze_view_2d import MazeView2D
 
 
@@ -49,12 +49,39 @@ class MazeEnv(gym.Env):
         self.state = None
         self.steps_beyond_done = None
 
+        # For MDP planning (added by jmlee)
+        self.S = self.maze_size[0] * self.maze_size[1] + 1  # 25 + 1 (including absorbing state)
+        self.A = 4
+        self.T = np.zeros((self.S, self.A, self.S))
+        self.R = np.zeros((self.S, self.A))
+        self.T[self.S-1, :, self.S-1] = 1.
+        for s in range(self.S - 1):
+            for a in range(self.A):
+                self.maze_view.robot = self.state_to_ob(s)
+                state1, reward, done, _ = self.step(a)
+                self._reset()
+                # print("S=%s (%d) / A=%s / S1=%s (%d) / R=%f / done=%s" % (
+                #     self.state_to_ob(s), s, self.ACTION[a], state1, self.ob_to_state(state1), reward, done))
+
+                if done:
+                    self.T[s, a, self.S - 1] = 1.
+                else:
+                    self.T[s, a, self.ob_to_state(state1)] = 1.
+                self.R[s, a] = reward
+        self.gamma = 0.999
+
         # Simulation related variables.
         self._seed()
         self._reset()
 
         # Just need to initialize the relevant attributes
         self._configure()
+
+    def ob_to_state(self, ob):
+        return ob[1] * self.maze_size[1] + ob[0]
+
+    def state_to_ob(self, state):
+        return np.array([state % self.maze_size[1], state // self.maze_size[1]], dtype=int)
 
     def __del__(self):
         self.maze_view.quit_game()

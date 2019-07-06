@@ -1,16 +1,12 @@
-import os
-import matplotlib.pyplot as plt
-import sys
-import numpy as np
-import math
-import random
+import time
+
 import gym
 import gym_maze
-import time
+import numpy as np
 
 env = gym.make('maze-v0')
 
-state = env.reset()
+state = np.array(env.reset())
 for t in range(1000):
     action = env.action_space.sample()
     state1, reward, done, _ = env.step(action)
@@ -20,7 +16,7 @@ for t in range(1000):
         break
 
     env.render()
-    state = state1
+    state = np.array(state1)
 
     time.sleep(1)
 time.sleep(10000)
