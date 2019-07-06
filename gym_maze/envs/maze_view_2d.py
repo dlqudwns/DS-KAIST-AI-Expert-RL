@@ -185,7 +185,7 @@ class MazeView2D:
 
             pygame.draw.line(self.maze_layer, colour, line_head, line_tail)
 
-    def __draw_robot(self, colour=(0, 0, 250), transparency=255):
+    def __draw_robot(self, colour=(0, 150, 255), transparency=255):
 
         x = int(self.__robot[0] * self.CELL_W + self.CELL_W * 0.5 + 0.5)
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
@@ -193,11 +193,11 @@ class MazeView2D:
 
         pygame.draw.circle(self.maze_layer, colour + (transparency,), (x, y), r)
 
-    def __draw_entrance(self, colour=(0, 0, 150), transparency=235):
+    def __draw_entrance(self, colour=(0, 0, 255), transparency=235):
 
         self.__colour_cell(self.entrance, colour=colour, transparency=transparency)
 
-    def __draw_goal(self, colour=(150, 0, 0), transparency=235):
+    def __draw_goal(self, colour=(255, 0, 0), transparency=235):
 
         self.__colour_cell(self.goal, colour=colour, transparency=transparency)
 

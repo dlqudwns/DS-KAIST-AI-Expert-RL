@@ -58,7 +58,7 @@ class MazeEnv(gym.Env):
         for s in range(self.S - 1):
             for a in range(self.A):
                 self.maze_view.robot = self.state_to_ob(s)
-                state1, reward, done, _ = self.step(a)
+                _, reward, done, ob1 = self.step(a)
                 self._reset()
                 # print("S=%s (%d) / A=%s / S1=%s (%d) / R=%f / done=%s" % (
                 #     self.state_to_ob(s), s, self.ACTION[a], state1, self.ob_to_state(state1), reward, done))
@@ -66,7 +66,7 @@ class MazeEnv(gym.Env):
                 if done:
                     self.T[s, a, self.S - 1] = 1.
                 else:
-                    self.T[s, a, self.ob_to_state(state1)] = 1.
+                    self.T[s, a, self.ob_to_state(ob1)] = 1.
                 self.R[s, a] = reward
         self.gamma = 0.999
 
@@ -78,7 +78,7 @@ class MazeEnv(gym.Env):
         self._configure()
 
     def ob_to_state(self, ob):
-        return ob[1] * self.maze_size[1] + ob[0]
+        return int(ob[1] * self.maze_size[1] + ob[0])
 
     def state_to_ob(self, state):
         return np.array([state % self.maze_size[1], state // self.maze_size[1]], dtype=int)
@@ -108,16 +108,16 @@ class MazeEnv(gym.Env):
 
         self.state = self.maze_view.robot
 
-        info = {}
+        info = self.state
 
-        return self.state, reward, done, info
+        return self.ob_to_state(self.state), reward, done, info
 
     def _reset(self):
         self.maze_view.reset_robot()
         self.state = np.zeros(2)
         self.steps_beyond_done = None
         self.done = False
-        return self.state
+        return self.ob_to_state(self.state)
 
     def is_game_over(self):
         return self.maze_view.game_over
