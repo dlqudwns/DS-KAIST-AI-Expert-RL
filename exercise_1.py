@@ -1,16 +1,16 @@
 import time
 
 import gym
-import gym_maze
+import envs
 import numpy as np
 
 np.set_printoptions(precision=3, suppress=True)
 
 """ Load environment """
 # env = gym.make('maze-sample-5x5-v0')
-# env = gym.make('maze-sample-10x10-v0')
+env = gym.make('maze-sample-10x10-v0')
 # env = gym.make('maze-random-10x10-v0')
-env = gym.make('maze-random-20x20-plus-v0')
+# env = gym.make('maze-random-30x30-plus-v0')
 env.S, env.A, env.T, env.R, env.gamma = env.unwrapped.S, env.unwrapped.A, env.unwrapped.T, env.unwrapped.R, env.unwrapped.gamma
 
 """

@@ -3,7 +3,7 @@ import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
-from gym_maze.envs.maze_view_2d import MazeView2D
+from envs.maze_view_2d import MazeView2D
 
 
 class MazeEnv(gym.Env):
