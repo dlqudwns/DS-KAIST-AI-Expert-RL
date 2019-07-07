@@ -4,7 +4,7 @@ import gym
 import envs
 import numpy as np
 
-np.set_printoptions(precision=3, suppress=True)
+np.set_printoptions(precision=3, suppress=True, threshold=1000)
 
 """ Load environment """
 # env_name = 'MazeSample5x5-v0'
@@ -13,7 +13,8 @@ np.set_printoptions(precision=3, suppress=True)
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
 # env_name = 'MazeRandom20x20-plus-v0'
-env_name = 'MyMountainCar-v0'
+# env_name = 'MyMountainCar-v0'
+env_name = 'MyCartPole-v0'
 env = gym.make(env_name)
 env.S, env.A, env.T, env.R, env.gamma = env.env.S, env.env.A, env.env.T, env.env.R, env.env.gamma
 
@@ -63,9 +64,12 @@ print(pi)
 for episode in range(10):
     state = env.reset()
     env.render()
+
+    episode_reward = 0.
     for t in range(1000):
         action = int(np.random.choice(np.arange(env.A), p=pi[state, :]))
         state1, reward, done, info = env.step(action)
+        episode_reward += reward
         print("[%4d] state=%4s / action=%d / reward=%.4f / state1=%4s / info=%s" % (t, state, action, reward, state1, info))
 
         env.render()
@@ -74,6 +78,7 @@ for episode in range(10):
         if done:
             break
         state = state1
+    print('Episode reward: %.4f' % episode_reward)
 
     time.sleep(1)
 time.sleep(10)

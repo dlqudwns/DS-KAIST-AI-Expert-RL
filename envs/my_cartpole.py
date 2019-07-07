@@ -6,6 +6,7 @@ permalink: https://perma.cc/C9ZM-652R
 
 import logging
 import math
+import os
 
 import gym
 import numpy as np
@@ -36,20 +37,98 @@ class MyCartPoleEnv(gym.Env):
         self.x_threshold = 2.4
 
         # Angle limit set to 2 * theta_threshold_radians so failing observation is still within bounds
-        high = np.array([
+        self.high = np.array([
             self.x_threshold * 2,
-            np.finfo(np.float32).max,
+            3,
             self.theta_threshold_radians * 2,
-            np.finfo(np.float32).max])
+            3])
 
         self.action_space = spaces.Discrete(2)
-        self.observation_space = spaces.Box(-high, high)
+        self.observation_space = spaces.Box(-self.high, self.high)
 
         self._seed()
         self.viewer = None
         self.state = None
 
         self.steps_beyond_done = None
+
+        # discretize the state space (added by jmlee)
+        self.N_X = 6
+        self.N_X_DOT = 3
+        self.N_THETA = 9
+        self.N_THETA_DOT = 4
+        self.x_slices = np.r_[-self.high[0], np.linspace(-self.x_threshold, self.x_threshold, self.N_X - 2), self.high[0]]
+        self.x_dot_slices = np.linspace(-self.high[1], self.high[1], self.N_X_DOT)
+        self.theta_slices = np.r_[-self.high[2], np.linspace(-self.theta_threshold_radians, self.theta_threshold_radians, self.N_THETA - 2), self.high[2]]
+        self.theta_dot_slices = np.linspace(-self.high[3], self.high[3], self.N_THETA_DOT)
+        self._discretize()
+
+    def _discretize(self):
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "env_samples", 'cartpole_%d_%d_%d_%d.npy' % (self.N_X, self.N_X_DOT, self.N_THETA, self.N_THETA_DOT))
+
+        if os.path.exists(file_path):
+            mdp = np.load(file_path)[()]
+            self.S, self.A, self.T, self.R, self.gamma = mdp['S'], mdp['A'], mdp['T'], mdp['R'], mdp['gamma']
+        else:
+            print('CartPole environment not found: creating...')
+            self.S = self.N_X * self.N_X_DOT * self.N_THETA * self.N_THETA_DOT + 1
+            self.A = 2
+            self.T = np.zeros((self.S, self.A, self.S))
+            self.R = np.zeros((self.S, self.A))
+            self.T[self.S - 1, :, self.S - 1] = 1.
+            self.gamma = 0.99
+            self._reset()
+            for state in range(self.S - 1):
+                for action in range(self.A):
+                    for i in range(1000):
+                        ob = np.array(self.sample_ob_from_state(state))
+                        self.state = np.array(ob)
+                        state1, reward, done, ob1 = self.step(action)
+                        ob1 = np.array(ob1)
+                        print("[%4d] state=%s (%3d) / action=%s / reward=%f / state1=%s (%3d) / done=%s" % (i, ob, state, action, reward, ob1, state1, done))
+                        if done:
+                            self.T[state, action, self.S - 1] += 1
+                        else:
+                            self.T[state, action, state1] += 1
+                        self.R[state, action] += reward
+                    self.R[state, action] /= np.sum(self.T[state, action, :])
+                    self.T[state, action, :] /= np.sum(self.T[state, action, :])
+                    # print(self.T[state, action, :])
+            np.save(file_path, {'S': self.S, 'A': self.A, 'T': self.T, 'R': self.R, 'gamma': self.gamma})
+            print('Finished!')
+
+    def ob_to_state(self, ob):
+        x, x_dot, theta, theta_dot = ob
+        x_idx = np.where(self.x_slices <= x)[0][-1]
+        x_dot_idx = np.where(self.x_dot_slices <= x_dot)[0][-1]
+        theta_idx = np.where(self.theta_slices <= theta)[0][-1]
+        theta_dot_idx = np.where(self.theta_dot_slices <= theta_dot)[0][-1]
+
+        state = x_idx \
+                + self.N_X * x_dot_idx \
+                + self.N_X * self.N_X_DOT * theta_idx \
+                + self.N_X * self.N_X_DOT * self.N_THETA * theta_dot_idx
+
+        return state
+
+    def sample_ob_from_state(self, state):
+        x_idx_low = state % self.N_X
+        x_idx_high = np.min([x_idx_low + 1, self.N_X - 1])
+        x_dot_idx_low = state // self.N_X % self.N_X_DOT
+        x_dot_idx_high = np.min([x_dot_idx_low + 1, self.N_X_DOT - 1])
+        theta_idx_low = state // self.N_X // self.N_X_DOT % self.N_THETA
+        theta_idx_high = np.min([theta_idx_low + 1, self.N_THETA - 1])
+        theta_dot_idx_low = state // self.N_X // self.N_X_DOT // self.N_THETA % self.N_THETA_DOT
+        theta_dot_idx_high = np.min([theta_dot_idx_low + 1, self.N_THETA_DOT - 1])
+
+        x = np.random.uniform(self.x_slices[x_idx_low], self.x_slices[x_idx_high])
+        x_dot = np.random.uniform(self.x_dot_slices[x_dot_idx_low], self.x_dot_slices[x_dot_idx_high])
+        theta = np.random.uniform(self.theta_slices[theta_idx_low], self.theta_slices[theta_idx_high])
+        theta_dot = np.random.uniform(self.theta_dot_slices[theta_dot_idx_low], self.theta_dot_slices[theta_dot_idx_high])
+        ob = (x, x_dot, theta, theta_dot)
+
+        return ob
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -65,10 +144,10 @@ class MyCartPoleEnv(gym.Env):
         temp = (force + self.polemass_length * theta_dot * theta_dot * sintheta) / self.total_mass
         thetaacc = (self.gravity * sintheta - costheta* temp) / (self.length * (4.0/3.0 - self.masspole * costheta * costheta / self.total_mass))
         xacc  = temp - self.polemass_length * thetaacc * costheta / self.total_mass
-        x  = x + self.tau * x_dot
-        x_dot = x_dot + self.tau * xacc
-        theta = theta + self.tau * theta_dot
-        theta_dot = theta_dot + self.tau * thetaacc
+        x  = np.clip(x + self.tau * x_dot, -self.high[0], self.high[0])
+        x_dot = np.clip(x_dot + self.tau * xacc, -self.high[1], self.high[1])
+        theta = np.clip(theta + self.tau * theta_dot, -self.high[2], self.high[2])
+        theta_dot = np.clip(theta_dot + self.tau * thetaacc, -self.high[3], self.high[3])
         self.state = (x,x_dot,theta,theta_dot)
         done =  x < -self.x_threshold \
                 or x > self.x_threshold \
@@ -88,12 +167,12 @@ class MyCartPoleEnv(gym.Env):
             self.steps_beyond_done += 1
             reward = 0.0
 
-        return np.array(self.state), reward, done, {}
+        return self.ob_to_state(self.state), reward, done, np.array(self.state)
 
     def _reset(self):
         self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
         self.steps_beyond_done = None
-        return np.array(self.state)
+        return self.ob_to_state(self.state)
 
     def _render(self, mode='human', close=False):
         if close:

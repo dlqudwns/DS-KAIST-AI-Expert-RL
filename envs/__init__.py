@@ -89,7 +89,7 @@ register(
 )
 
 register(
-    id='MyCartpole-v0',
+    id='MyCartPole-v0',
     entry_point='envs.my_cartpole:MyCartPoleEnv',
     max_episode_steps=200,
     reward_threshold=195.0,
