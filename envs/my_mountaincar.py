@@ -32,7 +32,6 @@ class MyMountainCarEnv(gym.Env):
         self.observation_space = spaces.Box(self.low, self.high)
 
         # discretize the state space (added by jmlee)
-        np.set_printoptions(threshold=1e10, linewidth=200)
         self.N_POSITION = 15
         self.N_VELOCITY = 15
         self.position_slices = np.linspace(self.min_position, self.max_position, self.N_POSITION)

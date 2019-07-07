@@ -10,8 +10,10 @@ np.set_printoptions(precision=3, suppress=True)
 # env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeSample10x10-v0'
 # env_name = 'MazeRandom10x10-v0'
-# env_name = 'MazeRandom30x30-plus-v0'
-env_name = 'MyMountainCar-v0'
+# env_name = 'MazeRandom10x10-plus-v0'
+# env_name = 'MazeRandom20x20-v0'
+env_name = 'MazeRandom20x20-plus-v0'
+# env_name = 'MyMountainCar-v0'
 env = gym.make(env_name)
 env.S, env.A, env.T, env.R, env.gamma = env.env.S, env.env.A, env.env.T, env.env.R, env.env.gamma
 
@@ -67,8 +69,7 @@ for episode in range(10):
         print("state=%s / action=%d / reward=%f / state1=%s / info=%s" % (state, action, reward, state1, info))
 
         env.render()
-        # time.sleep(0.3)
-        time.sleep(0.03)
+        time.sleep(0.3 if 'Maze' in env_name else 0.03)
 
         if done:
             break
