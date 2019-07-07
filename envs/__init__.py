@@ -87,3 +87,10 @@ register(
     max_episode_steps=200,
     reward_threshold=-110.0
 )
+
+register(
+    id='MyCartpole-v0',
+    entry_point='envs.my_cartpole:MyCartPoleEnv',
+    max_episode_steps=200,
+    reward_threshold=195.0,
+)
