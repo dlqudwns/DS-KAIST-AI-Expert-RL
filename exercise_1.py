@@ -4,7 +4,7 @@ import gym
 import envs
 import numpy as np
 
-np.set_printoptions(precision=3, suppress=True, threshold=1000)
+np.set_printoptions(precision=3, suppress=True, threshold=10000)
 
 """ Load environment """
 # env_name = 'MazeSample5x5-v0'
@@ -59,7 +59,7 @@ for i in range(1000):
     pi = new_pi
     print(i, pi)
 print(Q)
-print(pi)
+# print(pi)
 
 for episode in range(10):
     state = env.reset()

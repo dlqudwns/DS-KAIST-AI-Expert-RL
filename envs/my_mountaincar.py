@@ -61,6 +61,7 @@ class MyMountainCarEnv(gym.Env):
             for state in range(self.S - 1):
                 for action in range(self.A):
                     for i in range(1000):
+                        self.reset()
                         ob = np.array(self.sample_ob_from_state(state))
                         self.state = np.array(ob)
                         state1, reward, done, ob1 = self.step(action)
