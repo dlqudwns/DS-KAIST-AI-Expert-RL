@@ -182,3 +182,6 @@ class MyMountainCarEnv(gym.Env):
         self.cartrans.set_rotation(math.cos(3 * pos))
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
+
+    def draw_policy_evaluation(self, Q, pi=None):
+        pass

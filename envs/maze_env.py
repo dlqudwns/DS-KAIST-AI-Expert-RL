@@ -94,7 +94,7 @@ class MazeEnv(gym.Env):
         return [seed]
 
     def _step(self, action):
-        if isinstance(action, int):
+        if isinstance(action, int) or isinstance(action, np.int64) or isinstance(action, np.int32):
             self.maze_view.move_robot(self.ACTION[action])
         else:
             self.maze_view.move_robot(action)
@@ -128,9 +128,12 @@ class MazeEnv(gym.Env):
 
         return self.maze_view.update(mode)
 
-    def draw_policy_evaluation(self, pi, Q):
+    def draw_policy_evaluation(self, Q, pi=None):
         self.maze_view.Q = Q
-        self.maze_view.pi = pi
+        if pi is None:
+            self.maze_view.pi = np.zeros((self.S, self.A))
+        else:
+            self.maze_view.pi = pi
         self.maze_view.is_policy_evaluation = True
         self.maze_view.update()
 

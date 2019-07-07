@@ -225,3 +225,6 @@ class MyCartPoleEnv(gym.Env):
         self.poletrans.set_rotation(-x[2])
 
         return self.viewer.render(return_rgb_array = mode=='rgb_array')
+
+    def draw_policy_evaluation(self, Q, pi=None):
+        pass

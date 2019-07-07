@@ -265,7 +265,9 @@ class MazeView2D:
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
 
-        if not self.is_policy_evaluation:
+        if self.is_policy_evaluation:
+            pygame.draw.circle(self.maze_layer, colour + (np.min([transparency, 50]),), (x, y), r)
+        else:
             pygame.draw.circle(self.maze_layer, colour + (transparency,), (x, y), r)
 
     def __draw_entrance(self, colour=(0, 0, 255), transparency=235):
