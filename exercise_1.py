@@ -7,10 +7,11 @@ import numpy as np
 np.set_printoptions(precision=3, suppress=True)
 
 """ Load environment """
-# env = gym.make('maze-sample-5x5-v0')
-env = gym.make('maze-sample-10x10-v0')
-# env = gym.make('maze-random-10x10-v0')
-# env = gym.make('maze-random-30x30-plus-v0')
+# env = gym.make('MazeSample5x5-v0')
+# env = gym.make('MazeSample10x10-v0')
+# env = gym.make('MazeRandom10x10-v0')
+# env = gym.make('MazeRandom30x30-plus-v0')
+env = gym.make('MyMountainCar-v0')
 env.S, env.A, env.T, env.R, env.gamma = env.unwrapped.S, env.unwrapped.A, env.unwrapped.T, env.unwrapped.R, env.unwrapped.gamma
 
 """
@@ -46,15 +47,15 @@ def policy_improvement(env, Q):
 
 
 pi = np.ones((env.S, env.A)) / env.A
-for i in range(100):
+for i in range(1000):
     V, Q = policy_evaluation(env, pi)
     new_pi = policy_improvement(env, Q)
     if np.all(pi == new_pi):
         break
     pi = new_pi
     print(i, pi)
-print(V)
 print(Q)
+print(pi)
 
 for episode in range(10):
     state = env.reset()
@@ -62,9 +63,11 @@ for episode in range(10):
     for t in range(1000):
         action = int(np.random.choice(np.arange(env.A), p=pi[state, :]))
         state1, reward, done, info = env.step(action)
+        print("state=%s / action=%d / reward=%f / state1=%s / info=%s" % (state, action, reward, state1, info))
 
         env.render()
-        time.sleep(0.3)
+        # time.sleep(0.3)
+        time.sleep(0.03)
 
         if done:
             break

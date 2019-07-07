@@ -30,17 +30,58 @@ class MyMountainCarEnv(gym.Env):
         self.action_space = spaces.Discrete(3)
         self.observation_space = spaces.Box(self.low, self.high)
 
+        # discretize the state space (added by jmlee)
+        np.set_printoptions(threshold=1e10, linewidth=200)
+        self.N_POSITION = 20
+        self.N_VELOCITY = 20
+        self.position_slices = np.linspace(self.min_position, self.max_position, self.N_POSITION)
+        self.velocity_slices = np.linspace(-self.max_speed, self.max_speed, self.N_VELOCITY)
+        self._discretize()
+
         self._seed()
         self.reset()
 
-        self._discretize()
-
     def _discretize(self):
         # (position, velocity) -> (20 x 20)
-        position_slices = np.linspace(self.min_position, self.max_position, 20)
-        speed_slices = np.linspace(-self.max_speed, self.max_speed, 20)
-        self.S = 400
+        self.S = self.N_POSITION * self.N_VELOCITY + 1
         self.A = 3
+        self.T = np.zeros((self.S, self.A, self.S))
+        self.R = np.zeros((self.S, self.A))
+        self.T[self.S - 1, :, self.S - 1] = 1.
+        self.R[:self.S - 1, :] = -1
+        self.gamma = 0.99
+
+        for state in range(self.S - 1):
+            for action in range(self.A):
+                for i in range(100):
+                    ob = np.array(self.sample_ob_from_state(state))
+                    self.state = np.array(ob)
+                    state1, reward, done, ob1 = self.step(action)
+                    ob1 = np.array(ob1)
+                    # print("[%4d] state=%s (%3d) / action=%s / reward=%f / state1=%s (%3d) / done=%s" % (i, ob, state, action, reward, ob1, state1, done))
+                    if done:
+                        self.T[state, action, self.S - 1] += 1
+                    else:
+                        self.T[state, action, state1] += 1
+                self.T[state, action, :] /= np.sum(self.T[state, action, :])
+
+    def ob_to_state(self, ob):
+        position, velocity = ob
+        position_idx = np.where(self.position_slices <= position)[0][-1]
+        velocity_idx = np.where(self.velocity_slices <= velocity)[0][-1]
+
+        return position_idx * self.N_VELOCITY + velocity_idx
+
+    def sample_ob_from_state(self, state):
+        position_idx_low = state // self.N_VELOCITY
+        position_idx_high = np.min([position_idx_low + 1, self.N_POSITION - 1])
+        velocity_idx_low = state % self.N_VELOCITY
+        velocity_idx_high = np.min([velocity_idx_low + 1, self.N_VELOCITY - 1])
+
+        position = np.random.uniform(self.position_slices[position_idx_low], self.position_slices[position_idx_high])
+        velocity = np.random.uniform(self.velocity_slices[velocity_idx_low], self.velocity_slices[velocity_idx_high])
+
+        return (position, velocity)
 
     def _seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -60,11 +101,13 @@ class MyMountainCarEnv(gym.Env):
         reward = -1.0
 
         self.state = (position, velocity)
-        return np.array(self.state), reward, done, {}
+        return self.ob_to_state(self.state), reward, done, self.state
+        # return np.array(self.state), reward, done, {}
 
     def _reset(self):
         self.state = np.array([self.np_random.uniform(low=-0.6, high=-0.4), 0])
-        return np.array(self.state)
+        return self.ob_to_state(self.state)
+        # return np.array(self.state)
 
     def _height(self, xs):
         return np.sin(3 * xs)*.45+.55
