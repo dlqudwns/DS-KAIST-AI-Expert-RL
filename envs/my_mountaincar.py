@@ -8,6 +8,7 @@ import gym
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
+import os
 
 
 class MyMountainCarEnv(gym.Env):
@@ -32,8 +33,8 @@ class MyMountainCarEnv(gym.Env):
 
         # discretize the state space (added by jmlee)
         np.set_printoptions(threshold=1e10, linewidth=200)
-        self.N_POSITION = 20
-        self.N_VELOCITY = 20
+        self.N_POSITION = 15
+        self.N_VELOCITY = 15
         self.position_slices = np.linspace(self.min_position, self.max_position, self.N_POSITION)
         self.velocity_slices = np.linspace(-self.max_speed, self.max_speed, self.N_VELOCITY)
         self._discretize()
@@ -42,28 +43,38 @@ class MyMountainCarEnv(gym.Env):
         self.reset()
 
     def _discretize(self):
-        # (position, velocity) -> (20 x 20)
-        self.S = self.N_POSITION * self.N_VELOCITY + 1
-        self.A = 3
-        self.T = np.zeros((self.S, self.A, self.S))
-        self.R = np.zeros((self.S, self.A))
-        self.T[self.S - 1, :, self.S - 1] = 1.
-        self.R[:self.S - 1, :] = -1
-        self.gamma = 0.99
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(dir_path, "env_samples", 'mountaincar_%d_%d.npy' % (self.N_POSITION, self.N_VELOCITY))
 
-        for state in range(self.S - 1):
-            for action in range(self.A):
-                for i in range(100):
-                    ob = np.array(self.sample_ob_from_state(state))
-                    self.state = np.array(ob)
-                    state1, reward, done, ob1 = self.step(action)
-                    ob1 = np.array(ob1)
-                    # print("[%4d] state=%s (%3d) / action=%s / reward=%f / state1=%s (%3d) / done=%s" % (i, ob, state, action, reward, ob1, state1, done))
-                    if done:
-                        self.T[state, action, self.S - 1] += 1
-                    else:
-                        self.T[state, action, state1] += 1
-                self.T[state, action, :] /= np.sum(self.T[state, action, :])
+        if os.path.exists(file_path):
+            mdp = np.load(file_path)[()]
+            self.S, self.A, self.T, self.R, self.gamma = mdp['S'], mdp['A'], mdp['T'], mdp['R'], mdp['gamma']
+        else:
+            # (position, velocity) -> (N_POSITION x N_VELOCITY)
+            print('MountainCar environment not found: creating...')
+            self.S = self.N_POSITION * self.N_VELOCITY + 1
+            self.A = 3
+            self.T = np.zeros((self.S, self.A, self.S))
+            self.R = np.zeros((self.S, self.A))
+            self.T[self.S - 1, :, self.S - 1] = 1.
+            self.R[:self.S - 1, :] = -1
+            self.gamma = 0.99
+            for state in range(self.S - 1):
+                for action in range(self.A):
+                    for i in range(1000):
+                        ob = np.array(self.sample_ob_from_state(state))
+                        self.state = np.array(ob)
+                        state1, reward, done, ob1 = self.step(action)
+                        ob1 = np.array(ob1)
+                        # print("[%4d] state=%s (%3d) / action=%s / reward=%f / state1=%s (%3d) / done=%s" % (i, ob, state, action, reward, ob1, state1, done))
+                        if done:
+                            self.T[state, action, self.S - 1] += 1
+                        else:
+                            self.T[state, action, state1] += 1
+                    self.T[state, action, :] /= np.sum(self.T[state, action, :])
+                    # print(self.T[state, action, :])
+            np.save(file_path, {'S': self.S, 'A': self.A, 'T': self.T, 'R': self.R, 'gamma': self.gamma})
+            print('Finished!')
 
     def ob_to_state(self, ob):
         position, velocity = ob
@@ -101,7 +112,7 @@ class MyMountainCarEnv(gym.Env):
         reward = -1.0
 
         self.state = (position, velocity)
-        return self.ob_to_state(self.state), reward, done, self.state
+        return self.ob_to_state(self.state), reward, done, np.array(self.state)
         # return np.array(self.state), reward, done, {}
 
     def _reset(self):
