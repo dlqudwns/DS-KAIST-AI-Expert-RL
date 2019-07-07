@@ -4,7 +4,7 @@ from gym import spaces
 from gym.utils import seeding
 
 from envs.maze_view_2d import MazeView2D
-
+import pygame
 
 class MazeEnv(gym.Env):
     metadata = {
@@ -127,6 +127,12 @@ class MazeEnv(gym.Env):
             self.maze_view.quit_game()
 
         return self.maze_view.update(mode)
+
+    def draw_policy_evaluation(self, pi, Q):
+        self.maze_view.Q = Q
+        self.maze_view.pi = pi
+        self.maze_view.is_policy_evaluation = True
+        self.maze_view.update()
 
 
 class MazeEnvSample5x5(MazeEnv):

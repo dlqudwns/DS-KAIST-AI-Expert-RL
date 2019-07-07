@@ -52,6 +52,15 @@ class MazeView2D:
         self.maze_layer = pygame.Surface(self.screen.get_size()).convert_alpha()
         self.maze_layer.fill((0, 0, 0, 0,))
 
+        # added by jmlee (policy evaluation)
+        self.is_policy_evaluation = False
+        self.maze_layer2 = pygame.Surface(self.screen.get_size()).convert_alpha()
+        self.maze_layer2.fill((0, 0, 0, 0,))
+        pygame.font.init()
+        self.font = pygame.font.SysFont(None, int(self.CELL_W * 0.25))
+        self.Q = np.zeros((self.maze.MAZE_H * self.maze.MAZE_W + 1, 4))
+        self.pi = np.zeros((self.maze.MAZE_H * self.maze.MAZE_W + 1, 4))
+
         # show the maze
         self.__draw_maze()
 
@@ -127,7 +136,72 @@ class MazeView2D:
 
             # update the screen
             self.screen.blit(self.background, (0, 0))
-            self.screen.blit(self.maze_layer,(0, 0))
+            self.screen.blit(self.maze_layer, (0, 0))
+            self.screen.blit(self.maze_layer2, (0, 0))
+            if self.is_policy_evaluation:
+                # Draw lines
+                for x in range(self.maze.MAZE_W):
+                    for y in range(self.maze.MAZE_H):
+                        color = (200, 200, 200, 255)
+                        CELL_W, CELL_H = self.CELL_W, self.CELL_H
+                        pygame.draw.line(self.maze_layer2, color, (x * CELL_W, y * CELL_H), ((x + 1) * CELL_W, (y + 1) * CELL_H))
+                        pygame.draw.line(self.maze_layer2, color, ((x + 1) * CELL_W, y * CELL_H), (x * CELL_W, (y + 1) * CELL_H))
+
+                # Draw Q texts and policy
+                for i in range(self.maze.MAZE_W * self.maze.MAZE_H):
+                    x = i % self.maze.MAZE_H
+                    y = i // self.maze.MAZE_H
+                    for j in range(4):
+                        # N, S, E, W
+                        center_x, center_y = (self.CELL_W * x + self.CELL_W * 0.5), (self.CELL_H * y + self.CELL_H * 0.5)
+                        triangle_size = 10
+                        if j == 0:
+                            text_x, text_y = (self.CELL_W * x + self.CELL_W * 0.5), (self.CELL_H * y + self.CELL_H * 0.25)
+                            if self.pi[i, j] > 0:
+                                arrow_x, arrow_y = center_x, center_y + triangle_size - (self.CELL_H * 0.5) * self.pi[i, j]
+                                pygame.draw.line(self.maze_layer2, (0, 0, 0, 128), (center_x, center_y), (arrow_x, arrow_y), 3)
+                                pygame.draw.polygon(self.maze_layer2, (0, 0, 0, 128), (
+                                    (arrow_x - triangle_size * 0.5, arrow_y),
+                                    (arrow_x + triangle_size * 0.5, arrow_y),
+                                    (arrow_x, arrow_y - triangle_size),
+                                ))
+                        elif j == 1:
+                            text_x, text_y = (self.CELL_W * x + self.CELL_W * 0.5), (self.CELL_H * y + self.CELL_H * 0.75)
+                            if self.pi[i, j] > 0:
+                                arrow_x, arrow_y = center_x, center_y - triangle_size + (self.CELL_H * 0.5) * self.pi[i, j]
+                                pygame.draw.line(self.maze_layer2, (0, 0, 0, 128), (center_x, center_y), (arrow_x, arrow_y),3)
+                                pygame.draw.polygon(self.maze_layer2, (0, 0, 0, 128), (
+                                    (arrow_x + triangle_size * 0.5, arrow_y),
+                                    (arrow_x - triangle_size * 0.5, arrow_y),
+                                    (arrow_x, arrow_y + triangle_size),
+                                ))
+                        elif j == 2:
+                            text_x, text_y = (self.CELL_W * x + self.CELL_W * 0.75), (self.CELL_H * y + self.CELL_H * 0.5)
+                            if self.pi[i, j] > 0:
+                                arrow_x, arrow_y = center_x - triangle_size + (self.CELL_H * 0.5) * self.pi[i, j], center_y
+                                pygame.draw.line(self.maze_layer2, (0, 0, 0, 128), (center_x, center_y), (arrow_x, arrow_y), 3)
+                                pygame.draw.polygon(self.maze_layer2, (0, 0, 0, 128), (
+                                    (arrow_x, arrow_y + triangle_size * 0.5),
+                                    (arrow_x, arrow_y - triangle_size * 0.5),
+                                    (arrow_x + triangle_size, arrow_y),
+                                ))
+                        else:
+                            text_x, text_y = (self.CELL_W * x + self.CELL_W * 0.25), (self.CELL_H * y + self.CELL_H * 0.5)
+                            if self.pi[i, j] > 0:
+                                arrow_x, arrow_y = center_x + triangle_size - (self.CELL_H * 0.5) * self.pi[i, j], center_y
+                                pygame.draw.line(self.maze_layer2, (0, 0, 0, 128), (center_x, center_y), (arrow_x, arrow_y), 3)
+                                pygame.draw.polygon(self.maze_layer2, (0, 0, 0, 128), (
+                                    (arrow_x, arrow_y - triangle_size * 0.5),
+                                    (arrow_x, arrow_y + triangle_size * 0.5),
+                                    (arrow_x - triangle_size, arrow_y),
+                                ))
+
+                        if self.Q[i, j] >= self.Q[i, :].dot(self.pi[i, :]) + 1e-6:
+                            surface = self.font.render("%.2f" % self.Q[i, j], True, (0, 160, 0, 128))
+                        else:
+                            surface = self.font.render("%.2f" % self.Q[i, j], True, (160, 0, 0, 128))
+                        text_rect = surface.get_rect(center=(text_x, text_y))
+                        self.screen.blit(surface, text_rect)
 
             if mode == "human":
                 pygame.display.flip()
@@ -191,15 +265,20 @@ class MazeView2D:
         y = int(self.__robot[1] * self.CELL_H + self.CELL_H * 0.5 + 0.5)
         r = int(min(self.CELL_W, self.CELL_H)/5 + 0.5)
 
-        pygame.draw.circle(self.maze_layer, colour + (transparency,), (x, y), r)
+        if not self.is_policy_evaluation:
+            pygame.draw.circle(self.maze_layer, colour + (transparency,), (x, y), r)
 
     def __draw_entrance(self, colour=(0, 0, 255), transparency=235):
-
-        self.__colour_cell(self.entrance, colour=colour, transparency=transparency)
+        if self.is_policy_evaluation:
+            self.__colour_cell(self.entrance, colour=colour, transparency=30)
+        else:
+            self.__colour_cell(self.entrance, colour=colour, transparency=transparency)
 
     def __draw_goal(self, colour=(255, 0, 0), transparency=235):
-
-        self.__colour_cell(self.goal, colour=colour, transparency=transparency)
+        if self.is_policy_evaluation:
+            self.__colour_cell(self.goal, colour=colour, transparency=30)
+        else:
+            self.__colour_cell(self.goal, colour=colour, transparency=transparency)
 
     def __draw_portals(self, transparency=160):
 
