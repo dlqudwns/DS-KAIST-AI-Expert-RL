@@ -196,7 +196,7 @@ class MazeView2D:
                                     (arrow_x - triangle_size, arrow_y),
                                 ))
 
-                        if self.Q[i, j] >= self.Q[i, :].dot(self.pi[i, :]) + 1e-6:
+                        if self.Q[i, j] >= np.max(self.Q[i, :]) - 1e-6:
                             surface = self.font.render("%.2f" % self.Q[i, j], True, (0, 160, 0, 128))
                         else:
                             surface = self.font.render("%.2f" % self.Q[i, j], True, (160, 0, 0, 128))

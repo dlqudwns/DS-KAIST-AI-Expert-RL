@@ -9,7 +9,7 @@ np.set_printoptions(precision=3, suppress=True, threshold=10000, linewidth=250)
 
 """ Load environment """
 env_name = 'MazeSample3x3-v0'
-env_name = 'MazeSample5x5-v0'
+# env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeRandom10x10-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
