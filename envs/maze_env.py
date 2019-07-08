@@ -59,7 +59,7 @@ class MazeEnv(gym.Env):
             for a in range(self.A):
                 self.maze_view.robot = self.state_to_ob(s)
                 _, reward, done, ob1 = self.step(a)
-                self._reset()
+                self.reset()
                 # print("S=%s (%d) / A=%s / S1=%s (%d) / R=%f / done=%s" % (
                 #     self.state_to_ob(s), s, self.ACTION[a], state1, self.ob_to_state(state1), reward, done))
 
@@ -71,8 +71,8 @@ class MazeEnv(gym.Env):
         self.gamma = 0.999
 
         # Simulation related variables.
-        self._seed()
-        self._reset()
+        self.seed()
+        self.reset()
 
         # Just need to initialize the relevant attributes
         self._configure()
@@ -89,11 +89,11 @@ class MazeEnv(gym.Env):
     def _configure(self, display=None):
         self.display = display
 
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _step(self, action):
+    def step(self, action):
         if isinstance(action, int) or isinstance(action, np.int64) or isinstance(action, np.int32):
             self.maze_view.move_robot(self.ACTION[action])
         else:
@@ -112,7 +112,7 @@ class MazeEnv(gym.Env):
 
         return self.ob_to_state(self.state), reward, done, info
 
-    def _reset(self):
+    def reset(self):
         self.maze_view.reset_robot()
         self.state = np.zeros(2)
         self.steps_beyond_done = None
@@ -122,7 +122,7 @@ class MazeEnv(gym.Env):
     def is_game_over(self):
         return self.maze_view.game_over
 
-    def _render(self, mode="human", close=False):
+    def render(self, mode="human", close=False):
         if close:
             self.maze_view.quit_game()
 

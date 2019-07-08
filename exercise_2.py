@@ -7,12 +7,12 @@ import numpy as np
 np.set_printoptions(precision=3, suppress=True, threshold=10000, linewidth=250)
 
 """ Load environment """
-env_name = 'MazeSample5x5-v0'
+# env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeSample10x10-v0'
 # env_name = 'MazeRandom10x10-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
-# env_name = 'MazeRandom20x20-plus-v0'
+env_name = 'MazeRandom20x20-plus-v0'
 # env_name = 'MyMountainCar-v0'
 # env_name = 'MyCartPole-v0'
 env = gym.make(env_name)
@@ -72,8 +72,9 @@ for episode in range(10):
         episode_reward += reward
         print("[%4d] state=%4s / action=%d / reward=%7.4f / state1=%4s / info=%s" % (t, state, action, reward, state1, info))
 
+        # env.draw_policy_evaluation(Q, pi)
         env.render()
-        time.sleep(0.3 if 'Maze' in env_name else 0.03)
+        time.sleep(0.3 if 'Maze' in env_name else 0.01)
 
         if done:
             break

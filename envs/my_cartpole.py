@@ -130,11 +130,11 @@ class MyCartPoleEnv(gym.Env):
 
         return ob
 
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _step(self, action):
+    def step(self, action):
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         state = self.state
         x, x_dot, theta, theta_dot = state
@@ -169,12 +169,12 @@ class MyCartPoleEnv(gym.Env):
 
         return self.ob_to_state(self.state), reward, done, np.array(self.state)
 
-    def _reset(self):
+    def reset(self):
         self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
         self.steps_beyond_done = None
         return self.ob_to_state(self.state)
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         if close:
             if self.viewer is not None:
                 self.viewer.close()
