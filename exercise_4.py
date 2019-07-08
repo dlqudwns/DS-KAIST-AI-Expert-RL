@@ -21,9 +21,9 @@ class DQNAgent:
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.1
         self.epsilon_decay = 0.995
-        self.learning_rate = 0.001
+
         self.q_model = self._build_model()
-        self.q_model.compile(loss='mse', optimizer=Adam(0.001))
+        self.q_model.compile(loss='mse', optimizer=Adam(lr=0.001))
         self.target_q_model = self._build_model()
         self.update_target_q_weights()  # copy Q network params to target Q network
 
@@ -44,9 +44,9 @@ class DQNAgent:
     def act(self, state):
         # epsilon-greedy policy
         if np.random.rand() <= self.epsilon:
-            return np.random.randint(0, self.action_size)
+            return np.random.randint(0, self.action_size), np.zeros(self.action_size)
         q_values = self.q_model.predict(np.array([state]))
-        return np.argmax(q_values[0])
+        return np.argmax(q_values[0]), q_values[0]
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((np.array([state]), action, reward, np.array([next_state]), done))
@@ -58,8 +58,6 @@ class DQNAgent:
         sars_batch = random.sample(self.memory, batch_size)
         state_batch, q_values_batch = [], []
 
-        # fixme: for speedup, this could be done on the tensor level
-        # but easier to understand using a loop
         for state, action, reward, next_state, done in sars_batch:
             # policy prediction for a given state
             q_values = self.q_model.predict(state)
@@ -100,20 +98,19 @@ agent = DQNAgent(state_dim, action_size)
 
 for episode in range(5000):
     state = env.reset()
-    env.render()
 
     episode_reward = 0.
     for t in range(1000):
-        action = agent.act(state)
+        action, Q_values = agent.act(state)
         next_state, reward, done, info = env.step(action)
 
         agent.remember(state, action, reward, next_state, done)
 
         episode_reward += reward
-        print("[%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / info=%s" % (t, state, action, reward, next_state, info))
-        #
-        # env.render()
-        # time.sleep(0.01)
+        print("[%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / Q[s]=%s" % (t, state, action, reward, next_state, Q_values))
+        if episode % 100 == 0:
+            env.render()
+            time.sleep(0.01)
 
         if done:
             break

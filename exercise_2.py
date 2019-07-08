@@ -7,12 +7,12 @@ import numpy as np
 np.set_printoptions(precision=3, suppress=True, threshold=10000, linewidth=250)
 
 """ Load environment """
-# env_name = 'MazeSample5x5-v0'
+env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeSample10x10-v0'
 # env_name = 'MazeRandom10x10-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
-env_name = 'MazeRandom20x20-plus-v0'
+# env_name = 'MazeRandom20x20-plus-v0'
 # env_name = 'MyMountainCar-v0'
 # env_name = 'MyCartPole-v0'
 env = gym.make(env_name)
@@ -50,29 +50,31 @@ def policy_improvement(env, Q):
     return pi
 
 
-pi = np.ones((env.S, env.A)) / env.A
-for i in range(1000):
-    V, Q = policy_evaluation(env, pi)
-    new_pi = policy_improvement(env, Q)
-    if np.all(pi == new_pi):
-        break
-    pi = new_pi
-    print(i, pi)
-print(Q)
-# print(pi)
+def policy_iteration(env):
+    pi = np.ones((env.S, env.A)) / env.A
+    for i in range(1000):
+        V, Q = policy_evaluation(env, pi)
+        new_pi = policy_improvement(env, Q)
+        if np.all(pi == new_pi):
+            break
+        pi = new_pi
+    return pi, Q
+
+
+pi, Q = policy_iteration(env)
 
 for episode in range(10):
     state = env.reset()
     env.render()
 
     episode_reward = 0.
-    for t in range(1000):
+    for t in range(10000):
         action = int(np.random.choice(np.arange(env.A), p=pi[state, :]))
         state1, reward, done, info = env.step(action)
         episode_reward += reward
         print("[%4d] state=%4s / action=%d / reward=%7.4f / state1=%4s / info=%s" % (t, state, action, reward, state1, info))
 
-        # env.draw_policy_evaluation(Q, pi)
+        env.draw_policy_evaluation(Q, pi)  # 필요시 주석 처리
         env.render()
         time.sleep(0.3 if 'Maze' in env_name else 0.01)
 
