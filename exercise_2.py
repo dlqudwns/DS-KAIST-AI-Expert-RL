@@ -7,16 +7,16 @@ import numpy as np
 np.set_printoptions(precision=3, suppress=True, threshold=10000, linewidth=250)
 
 """ Load environment """
-# env_name = 'MazeSample5x5-v0'
+env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeSample10x10-v0'
 # env_name = 'MazeRandom10x10-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
 # env_name = 'MazeRandom20x20-plus-v0'
+# env_name = 'MyCartPole-v0'
 # env_name = 'MyMountainCar-v0'
-env_name = 'MyCartPole-v0'
+
 env = gym.make(env_name)
-env.S, env.A, env.T, env.R, env.gamma = env.env.S, env.env.A, env.env.T, env.env.R, env.env.gamma
 
 """
 env.S: the number of states (integer)

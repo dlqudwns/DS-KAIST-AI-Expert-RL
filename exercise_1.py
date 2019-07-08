@@ -14,8 +14,6 @@ env_name = 'MazeSample3x3-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 
 env = gym.make(env_name)
-env.S, env.A, env.T, env.R, env.gamma = env.env.S, env.env.A, env.env.T, env.env.R, env.env.gamma
-env.draw_policy_evaluation = env.env.draw_policy_evaluation
 
 """
 env.S: the number of states (integer)

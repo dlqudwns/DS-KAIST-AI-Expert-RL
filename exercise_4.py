@@ -86,9 +86,12 @@ class DQNAgent:
 
 
 """ Load environment """
-# env_name = 'MountainCar-v0'
 env_name = 'CartPole-v0'
+# env_name = 'MountainCar-v0'
+
 env = gym.make(env_name)
+env.T = env.R = None
+
 state_dim = env.observation_space.shape[0]
 action_size = env.action_space.n
 gamma = 0.99
@@ -101,13 +104,13 @@ for episode in range(5000):
 
     episode_reward = 0.
     for t in range(1000):
-        action, Q_values = agent.act(state)
+        action, Q_s = agent.act(state)
         next_state, reward, done, info = env.step(action)
 
         agent.remember(state, action, reward, next_state, done)
 
         episode_reward += reward
-        print("[%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / Q[s]=%s" % (t, state, action, reward, next_state, Q_values))
+        print("[epi=%4d,t=%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / Q[s]=%s" % (episode, t, state, action, reward, next_state, Q_s))
         if episode % 100 == 0:
             env.render()
             time.sleep(0.01)
@@ -120,5 +123,5 @@ for episode in range(5000):
     if len(agent.memory) >= batch_size:
         agent.replay(batch_size)
 
-    print('Episode reward: %.4f' % episode_reward)
+    print('[%4d] Episode reward=%.4f / epsilon=%f' % (episode, episode_reward, agent.epsilon))
 time.sleep(10)

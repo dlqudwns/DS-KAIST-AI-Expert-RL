@@ -7,35 +7,38 @@ import numpy as np
 np.set_printoptions(precision=3, suppress=True, threshold=10000, linewidth=250)
 
 """ Load environment """
-env_name = 'MazeSample5x5-v0'
+env_name = 'MazeSample3x3-v0'
+# env_name = 'MazeSample5x5-v0'
 # env_name = 'MazeSample10x10-v0'
 # env_name = 'MazeRandom10x10-v0'
 # env_name = 'MazeRandom10x10-plus-v0'
 # env_name = 'MazeRandom20x20-v0'
 # env_name = 'MazeRandom20x20-plus-v0'
-# env_name = 'MyMountainCar-v0'
 # env_name = 'MyCartPole-v0'
+# env_name = 'MyMountainCar-v0'
+
 env = gym.make(env_name)
-S, A, gamma = env.env.S, env.env.A, env.env.gamma
-env.draw_policy_evaluation = env.env.draw_policy_evaluation
+env.T = env.R = None
 
 """
-S: the number of states (integer)
-A: the number of actions (integer)
+env.S: the number of states (integer)
+env.A: the number of actions (integer)
 gamma: discount factor (0 ~ 1)
 """
 
 
 def epsilon_greedy(Q, s, epsilon=0.1):
     if np.random.rand() < epsilon:
-        return np.random.randint(0, A)
+        return np.random.randint(0, env.A)
     else:
         return np.argmax(Q[s, :])
 
 
-alpha = 0.2
+step_size = 0.2
 
-Q, epsilon, epsilon_min = np.zeros((S, A)), 1, 0.1
+Q = np.zeros((env.S, env.A))
+epsilon = 1.0
+epsilon_min = 0.1
 
 for episode in range(1000):
     state = env.reset()
@@ -47,16 +50,13 @@ for episode in range(1000):
         next_state, reward, done, info = env.step(action)
 
         # Update Q-table
-        if done:
-            target_Q = reward
-        else:
-            target_Q = reward + gamma * np.max(Q[next_state, :])
-        Q[state, action] = Q[state, action] + alpha * (target_Q - Q[state, action])
-        env.draw_policy_evaluation(Q)
+        target_Q = reward if done else reward + env.gamma * np.max(Q[next_state, :])
+        Q[state, action] = Q[state, action] + step_size * (target_Q - Q[state, action])
 
         episode_reward += reward
-        print("[%4d] state=%4s / action=%d / reward=%7.4f / state1=%4s / info=%s / Q[s]=%s" % (t, state, action, reward, next_state, info, Q[state, :]))
+        print("[epi=%4d,t=%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / info=%s / Q[s]=%s" % (episode, t, state, action, reward, next_state, info, Q[state, :]))
 
+        env.draw_policy_evaluation(Q)
         env.render()
         time.sleep(0.01)
 
