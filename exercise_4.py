@@ -98,8 +98,6 @@ for episode in range(5000):
     for t in range(10000):
         action = agent.act(state)
         next_state, reward, done, info = env.step(action)
-        if 'Pendulum' in env_name and done:
-            break
 
         # Replay buffer 에 (s,a,r,s') 저장
         agent.remember(state, action, reward, next_state, done)
