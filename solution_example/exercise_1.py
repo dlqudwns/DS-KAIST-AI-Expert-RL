@@ -30,13 +30,10 @@ def policy_evaluation(env, pi):
     :param pi: behavior policy (S x A)-sized array
     :return: V, Q where V is (S)-sized array and Q is (S x A)-sized array
     """
-    V = np.zeros(env.S)
-    Q = np.zeros((env.S, env.A))
-
-    ###################
-    # TODO: V와 Q를 계산하는 코드를 여기에 작성하세요.
-    # ...
-    ###################
+    r = np.sum(env.R * pi, axis=1)
+    P = np.tensordot(pi, env.T, axes=([1], [1]))[np.arange(env.S), np.arange(env.S), :]
+    V = np.linalg.inv(np.eye(env.S) - env.gamma * P).dot(r)
+    Q = env.R + env.gamma * env.T.dot(V)
 
     return V, Q
 

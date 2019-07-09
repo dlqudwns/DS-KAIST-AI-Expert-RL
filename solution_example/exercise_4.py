@@ -64,13 +64,10 @@ class DQNAgent:
         for state, action, reward, next_state, done in mini_batch:
             q_values = self.q_model.predict_one(state)
 
-            #################################
-            # TODO:
             if done:
-                q_values[action] = 0
+                q_values[action] = reward
             else:
-                q_values[action] = 0
-            ##################################
+                q_values[action] = reward + self.gamma * np.max(self.target_q_model.predict_one(next_state))
 
             input_state_batch.append(state)
             target_q_values_batch.append(q_values)

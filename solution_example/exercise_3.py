@@ -49,12 +49,9 @@ for episode in range(1000):
         action = epsilon_greedy(Q, state, epsilon=0.2)
         next_state, reward, done, info = env.step(action)
 
-        ###################
-        # TODO: 여기를 작성하세요.
         # Update Q-table
-        target_Q = 0
-        Q[state, action] = 0
-        ###################
+        target_Q = reward if done else reward + env.gamma * np.max(Q[next_state, :])
+        Q[state, action] = Q[state, action] + step_size * (target_Q - Q[state, action])
 
         episode_reward += reward
         print("[epi=%4d,t=%4d] state=%4s / action=%d / reward=%7.4f / next_state=%4s / info=%s / Q[s]=%s" % (episode, t, state, action, reward, next_state, info, Q[state, :]))

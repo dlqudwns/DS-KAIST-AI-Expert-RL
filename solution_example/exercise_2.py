@@ -42,37 +42,21 @@ def policy_evaluation(env, pi):
 
 
 def policy_improvement(env, Q):
-    ###################
-    # TODO: 주어진 Q에 대해 향상된 정책(greedy policy)를 계산하는 코드를 작성하세요.
-    # ...
-    ###################
+    pi = np.zeros((env.S, env.A))
+    pi[np.arange(env.S), np.argmax(Q, axis=1)] = 1.
     return pi
 
 
 def policy_iteration(env):
     pi = np.ones((env.S, env.A)) / env.A
-    Q = np.zeros((env.S, env.A))
     for i in range(1000):
-        ###################
-        # TODO: 여기를 작성하세요.
-        # ...
-        new_pi = pi
-        ###################
+        V, Q = policy_evaluation(env, pi)
+        new_pi = policy_improvement(env, Q)
         if np.all(pi == new_pi):
             break
         pi = new_pi
     return pi, Q
 
-
-def value_iteration(env):
-    ###################
-    # TODO: 여기를 작성하세요.
-    Q = np.zeros((env.S, env.A))
-    for i in range(1000):
-        Q = np.zeros((env.S, env.A))
-    pi = np.ones((env.S, env.A)) / env.A
-    ###################
-    return pi, Q
 
 pi, Q = policy_iteration(env)
 
