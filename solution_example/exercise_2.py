@@ -58,7 +58,23 @@ def policy_iteration(env):
     return pi, Q
 
 
+def value_iteration(env):
+    V, Q = np.zeros(env.S), np.zeros((env.S, env.A))
+    for i in range(1000):
+        Q_new = env.R + env.gamma * env.T.dot(V)
+        V_new = np.max(Q_new, axis=1)
+        if np.max(np.abs(V - V_new)) < 1e-6:
+            break
+        V, Q = V_new, Q_new
+
+    pi = np.zeros((env.S, env.A))
+    pi[np.arange(env.S), np.argmax(Q, axis=1)] = 1.
+
+    return pi, Q
+
+
 pi, Q = policy_iteration(env)
+# pi, Q = value_iteration(env)
 
 for episode in range(10):
     state = env.reset()
