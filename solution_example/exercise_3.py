@@ -46,7 +46,7 @@ for episode in range(1000):
 
     episode_reward = 0.
     for t in range(10000):
-        action = epsilon_greedy(Q, state, epsilon=0.2)
+        action = epsilon_greedy(Q, state, epsilon)
         next_state, reward, done, info = env.step(action)
 
         # Update Q-table
