@@ -67,7 +67,7 @@ for episode in range(1000):
             break
         state = next_state
 
-    epsilon = np.max([epsilon * 0.995, epsilon_min])
+    epsilon = np.max([epsilon * 0.99, epsilon_min])
     print('[%4d] Episode reward=%.4f / epsilon=%f' % (episode, episode_reward, epsilon))
 
     time.sleep(0.1)
