@@ -46,7 +46,7 @@ class MyMountainCarEnv(gym.Env):
         file_path = os.path.join(dir_path, "env_samples", 'mountaincar_%d_%d.npy' % (self.N_POSITION, self.N_VELOCITY))
 
         if os.path.exists(file_path):
-            mdp = np.load(file_path)[()]
+            mdp = np.load(file_path, allow_pickle=True)[()]
             self.S, self.A, self.T, self.R, self.gamma = mdp['S'], mdp['A'], mdp['T'], mdp['R'], mdp['gamma']
         else:
             # (position, velocity) -> (N_POSITION x N_VELOCITY)

@@ -68,7 +68,7 @@ class MyCartPoleEnv(gym.Env):
         file_path = os.path.join(dir_path, "env_samples", 'cartpole_%d_%d_%d_%d.npy' % (self.N_X, self.N_X_DOT, self.N_THETA, self.N_THETA_DOT))
 
         if os.path.exists(file_path):
-            mdp = np.load(file_path)[()]
+            mdp = np.load(file_path, allow_pickle=True)[()]
             self.S, self.A, self.T, self.R, self.gamma = mdp['S'], mdp['A'], mdp['T'], mdp['R'], mdp['gamma']
         else:
             print('CartPole environment not found: creating...')
