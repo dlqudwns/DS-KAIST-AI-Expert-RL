@@ -94,3 +94,10 @@ register(
     max_episode_steps=200,
     reward_threshold=195.0,
 )
+
+
+register(
+    id='MyPendulum-v0',
+    entry_point='envs.my_pendulum:MyPendulumEnv',
+    max_episode_steps=200
+)
