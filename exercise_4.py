@@ -3,6 +3,7 @@ import time
 from collections import deque
 
 import gym
+import envs
 import numpy as np
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.models import Sequential
@@ -21,7 +22,7 @@ class DQNAgent:
 
         self.batch_size = 64
         self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.05
+        self.epsilon_min = 0.1
         self.epsilon_decay = 0.995
 
         self.q_model = self._build_model()
@@ -80,7 +81,7 @@ class DQNAgent:
 
 """ Load environment """
 env_name = 'CartPole-v0'
-# env_name = 'MountainCar-v0'
+# env_name = 'MyPendulum-v0'
 
 env = gym.make(env_name)
 env.T = env.R = None
@@ -97,12 +98,14 @@ for episode in range(5000):
     for t in range(10000):
         action = agent.act(state)
         next_state, reward, done, info = env.step(action)
+        if 'Pendulum' in env_name and done:
+            break
 
         # Replay buffer 에 (s,a,r,s') 저장
         agent.remember(state, action, reward, next_state, done)
 
         episode_reward += reward
-        print("[epi=%4d,t=%4d] state=%4s / action=%s / reward=%7.4f / next_state=%4s" % (episode, t, state, action, reward, next_state))
+        print("[epi=%4d,t=%4d] state=%4s / action=%s / reward=%7.4f / next_state=%4s / Q[s]=%s" % (episode, t, state, action, reward, next_state, agent.q_model.predict_one(state)))
         if episode % 100 == 0 or episode > 3000:
             env.render()
             time.sleep(0.01)
