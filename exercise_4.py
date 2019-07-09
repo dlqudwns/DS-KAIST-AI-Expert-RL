@@ -42,7 +42,10 @@ class DQNAgent:
         return model
 
     def update_target_q_weights(self):
-        self.target_q_model.set_weights(self.q_model.get_weights())
+        #################################
+        # TODO:
+        pass
+        #################################
 
     def act(self, state):
         # epsilon-greedy policy
