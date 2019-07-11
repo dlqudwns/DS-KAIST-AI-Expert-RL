@@ -166,8 +166,9 @@ class MyCartPoleEnv(gym.Env):
                 logger.warning("You are calling 'step()' even though this environment has already returned done = True. You should always call 'reset()' once you receive 'done = True' -- any further steps are undefined behavior.")
             self.steps_beyond_done += 1
             reward = 0.0
-
-        return self.ob_to_state(self.state), reward, done, np.array(self.state)
+        info = {}
+        info['state'] = np.array(self.state)
+        return self.ob_to_state(self.state), reward, done, info
 
     def reset(self):
         self.state = self.np_random.uniform(low=-0.05, high=0.05, size=(4,))
