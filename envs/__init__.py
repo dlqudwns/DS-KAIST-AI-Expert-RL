@@ -101,3 +101,10 @@ register(
     entry_point='envs.my_pendulum:MyPendulumEnv',
     max_episode_steps=200
 )
+
+
+register(
+    id='MyCliffWalking-v0',
+    entry_point='envs.my_cliff_walk:CliffWalkingEnv',
+    max_episode_steps=200,
+)
