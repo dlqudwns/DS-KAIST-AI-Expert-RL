@@ -56,7 +56,6 @@ class MyMountainCarEnv(gym.Env):
             self.T = np.zeros((self.S, self.A, self.S))
             self.R = np.zeros((self.S, self.A))
             self.T[self.S - 1, :, self.S - 1] = 1.
-            self.R[:self.S - 1, :] = -1
             self.gamma = 0.99
             for state in range(self.S - 1):
                 for action in range(self.A):
@@ -65,6 +64,7 @@ class MyMountainCarEnv(gym.Env):
                         ob = np.array(self.sample_ob_from_state(state))
                         self.state = np.array(ob)
                         state1, reward, done, ob1 = self.step(action)
+                        self.R[state, action] += reward
                         ob1 = np.array(ob1)
                         # print("[%4d] state=%s (%3d) / action=%s / reward=%f / state1=%s (%3d) / done=%s" % (i, ob, state, action, reward, ob1, state1, done))
                         if done:
@@ -72,6 +72,7 @@ class MyMountainCarEnv(gym.Env):
                         else:
                             self.T[state, action, state1] += 1
                     self.T[state, action, :] /= np.sum(self.T[state, action, :])
+                    self.R[state, action] /= 1000
                     # print(self.T[state, action, :])
             np.save(file_path, {'S': self.S, 'A': self.A, 'T': self.T, 'R': self.R, 'gamma': self.gamma})
             print('Finished!')
@@ -109,7 +110,10 @@ class MyMountainCarEnv(gym.Env):
         if (position==self.min_position and velocity<0): velocity = 0
 
         done = bool(position >= self.goal_position)
-        reward = -1.0
+        if done:
+            reward = 100
+        else:
+            reward = 0
 
         self.state = (position, velocity)
         info = {'state': np.array(self.state)}
