@@ -34,7 +34,7 @@ def policy_evaluation(env, pi):
     :return: V, Q where V is (S)-sized array and Q is (S x A)-sized array
     """
     r = np.sum(env.R * pi, axis=1)
-    P = np.tensordot(pi, env.T, axes=([1], [1]))[np.arange(env.S), np.arange(env.S), :]
+    P = np.sum(env.T * pi[:, :, None], axis=1)
     V = np.linalg.inv(np.eye(env.S) - env.gamma * P).dot(r)
     Q = env.R + env.gamma * env.T.dot(V)
 
@@ -74,7 +74,9 @@ def value_iteration(env):
     ###################
     return pi, Q
 
+
 pi, Q = policy_iteration(env)
+# pi, Q = value_iteration(env)
 
 for episode in range(10):
     state = env.reset()
